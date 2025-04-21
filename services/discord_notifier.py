@@ -5,7 +5,7 @@ from discord import Intents, Client, Message
 from typing import Final
 from dotenv import load_dotenv
 
-from services.trello_reminder import TrelloReminder
+from services.trello_client import TrelloReminder
 
 load_dotenv()
 

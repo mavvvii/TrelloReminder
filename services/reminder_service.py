@@ -1,7 +1,7 @@
 import asyncio
 from typing import Set
 
-from services.trello_reminder import TrelloReminder
+from services.trello_client import TrelloReminder
 from services.discord_bot import DiscordBot
 
 
