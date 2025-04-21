@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 from config import Settings
 
 
-class TrelloReminder:
+class TrelloClient:
     def __init__(self, settings: Settings) -> None:
         self._settings: Settings = settings
         self._base_url: str = f'https://api.trello.com/1/boards/{settings.trello_board_id}'

@@ -1,45 +1,40 @@
 import asyncio
+from datetime import timedelta
 from typing import Set
+from logger import logger
+from services.trello_client import TrelloClient
+from services.discord_notifier import DiscordNotifier
 
-from services.trello_client import TrelloReminder
-from services.discord_bot import DiscordBot
 
+class ReminderService:
+    def __init__(self, trello_client: TrelloClient, discord_notifier: DiscordNotifier, interval: int) -> None:
+        self.trello_client = trello_client
+        self.discord_notifier = discord_notifier
+        self.interval = interval
+        self._triggered_alerts: Set[dict[timedelta, str]] = set()
+        self._alerted_ids: Set[str] = set()
 
-class ReminderCoordinator:
-    def __init__(self, trello_reminder: TrelloReminder, discord_bot: DiscordBot) -> None:
-        self._trello_reminder: TrelloReminder = trello_reminder
-        self._discord_bot: DiscordBot = discord_bot
-
-        if not self._trello_reminder:
-            raise ValueError('Trello reminder is empty')
-        if not self._discord_bot:
-            raise ValueError('Discord bot is empty')
-
-        self._tasks: list[dict[str, str | list[str]]] = []
-        self._already_alerted_ids: Set = set()
-
-    async def periodic_check_loop(self) -> None:
+    async def start(self) -> None:
         while True:
-            await self._trello_reminder.refresh_data()
-            task: dict[str, str | list[str]] | None = await self._trello_reminder.check_tasks_deadline()
+            try:
+                await self.trello_client.refresh()
+                await self._check_and_alert()
+            except Exception:
+                logger.exception('Error in reminder loop')
+            await asyncio.sleep(self.interval)
 
-            if task is not None and task['id'] not in self._already_alerted_ids:
-                self._tasks.append(task)
-
-            for task in self._tasks:
-                if task['id'] not in self._already_alerted_ids:
-                    await self._discord_bot.sent_channel_message(
-                        f"📌 Zbliża się deadline zadania: **{task['name']}** (termin: {task['due']})"
-                    )
-                    self._already_alerted_ids.add(task['id'])
-
-            await asyncio.sleep(5)
-
-    async def run(self) -> None:
-        self._discord_bot.register_events()
-
-        task_run_bot: asyncio.Task = asyncio.create_task(self._discord_bot.run_bot())
-        await self._discord_bot._bot_ready_event.wait()
-        task_periodic_check: asyncio.Task = asyncio.create_task(self.periodic_check_loop())
-
-        await asyncio.gather(task_run_bot, task_periodic_check)
+    async def _check_and_alert(self) -> None:
+        cards = self.trello_client.get_cards()
+        for card in cards:
+            due = card.get('due')
+            if not due:
+                continue
+            time_left = self.trello_client.compute_due_delta(due)
+            for alert_threshold, msg in self.trello_client.alerts.items():
+                if time_left <= alert_threshold and time_left > timedelta(0):
+                    key = (card['id'], alert_threshold)
+                    print(key)
+                    if key not in self._triggered_alerts:
+                        content = f"📌 {msg}: **{card['name']}** (due: {due})"
+                        await self.discord_notifier.send(content)
+                        self._triggered_alerts.add(key)

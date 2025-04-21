@@ -1,17 +1,33 @@
 import asyncio
-
-from services.trello_reminder import TrelloReminder
-from services.discord_bot import DiscordBot
-from services.reminder_coordinator import ReminderCoordinator
-
+from discord.ext import commands
+from discord import Intents
+from services.trello_client import TrelloClient
+from services.discord_notifier import DiscordNotifier
+from services.reminder_service import ReminderService
+from config import Settings
 
 async def main():
-    trello_reminder: TrelloReminder = TrelloReminder()
-    discord_bot: DiscordBot = DiscordBot(trello_reminder)
-    reminder_coordinator: ReminderCoordinator = ReminderCoordinator(trello_reminder, discord_bot)
+    base_settings = Settings()
 
-    await reminder_coordinator.run()
+    intents = Intents.default()
+    intents.message_content = True
+    bot = commands.Bot(command_prefix='!', intents=intents)
 
+    notifier = DiscordNotifier(bot, base_settings)
+    await bot.add_cog(notifier)
+
+    trello_client = TrelloClient(base_settings)
+    reminder_services = ReminderService(
+        trello_client = trello_client,
+        discord_notifier = notifier,
+        interval = base_settings.check_interval
+    )
+
+    task_bot = asyncio.create_task(bot.start(base_settings.discord_api_token))
+    await notifier.ready_event.wait()
+    task_reminder = asyncio.create_task(reminder_services.start())
+    await asyncio.gather(task_bot, task_reminder)
+    await trello_client.close()
 
 if __name__ == "__main__":
     #ToDo using Protocol create better typing structure in directory Protocol
