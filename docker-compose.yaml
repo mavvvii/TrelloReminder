@@ -1,0 +1,42 @@
+services:
+  reminder_app:
+    container_name: trello_remidner
+    build:
+      context: .
+      target: prod
+    env_file:
+      - ./envs/.env.prod
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    user: 1000:1000
+
+  db:
+    container_name: db
+    image: postgres:16
+    env_file:
+      - ./envs/.env.prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "sh", "-c", "pg_isready -U "]
+      interval: 5s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    read_only: true
+    networks:
+      - app-network
+
+volumes:
+  postgres_data: {}
+
+networks:
+  app-network:
+
+secrets:
+  postgres_password:
+    file: ./envs.
