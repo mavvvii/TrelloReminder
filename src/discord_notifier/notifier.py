@@ -1,9 +1,9 @@
 import asyncio
+
 from discord.ext import commands
 
 from config import Settings
 from logger import logger
-
 
 
 class DiscordNotifier(commands.Cog):
@@ -15,16 +15,20 @@ class DiscordNotifier(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        logger.info(f'{self.bot.user} connected to Discord!')
+        logger.info(f"{self.bot.user} connected to Discord!")
         self.ready_event.set()
 
     async def send(self, content: str) -> None:
         channel = self.bot.get_channel(int(self.settings.discord_channel_id))
         if not channel:
-            logger.warning(f'Channel with ID {self.settings.discord_channel_id} not found!')
+            logger.warning(
+                f"Channel with ID"
+                f"{self.settings.discord_channel_id} not found!"
+            )
             return
         await channel.send(content)
 
-    @commands.command(name = 'tasks')
+    # ToDo Add commends for users
+    @commands.command(name="tasks")
     async def tasks(self, ctx: commands.Context) -> None:
-        await ctx.send('Tasks')
+        await ctx.send("Tasks")
