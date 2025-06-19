@@ -3,8 +3,8 @@ from datetime import timedelta
 from dataclasses import dataclass
 from typing import Set
 from logger import logger
-from services.trello_client import TrelloClient
-from services.discord_notifier import DiscordNotifier
+from trello_client import TrelloClient
+from discord_notifier import DiscordNotifier
 
 
 @dataclass(frozen = True)
@@ -38,11 +38,11 @@ class ReminderService:
             await self._process_card(card)
 
     async def _process_card(self, card: dict[str, str | list[str]]) -> None:
-        due_date = card.get('due')
+        due_date: str = card.get('due')
         if not due_date:
             return
 
-        due_time_left = self.trello_client.compute_due_delta(due_date)
+        due_time_left: timedelta = self.trello_client.compute_due_delta(due_date)
         await self._check_alert_threshold(card, due_time_left, due_date)
 
     async def _check_alert_threshold(
@@ -60,8 +60,18 @@ class ReminderService:
         return alert_key not in self._triggered_alerts
 
     async def _send_alert(self, card: dict, alert_msg: str, due_date: str, alert_threshold: timedelta) -> None:
-        content = f'**{card["name"]}** due on {due_date} - {alert_msg}'
+        members: list[str] = self.trello_client.get_members_data(card['idMembers'])
+        members_str: str = ", ".join(members)  
+
+        content: str = (
+            f"**{card['name']}** - due on {due_date} - **{alert_msg}** - "
+            f"{members_str}"
+        )
+
         await self.discord_notifier.send(content)
 
-        alert_key = AlertKey(card_id = card['id'], threshold_date = alert_threshold)
+        alert_key: AlertKey = AlertKey(card_id = card['id'], threshold_date = alert_threshold)
         self._triggered_alerts.add(alert_key)
+
+    # create fun to process due for better looking
+    #async def _process_due(self, due: str) -> list[str]:

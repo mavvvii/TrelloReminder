@@ -9,5 +9,6 @@ class Settings(BaseSettings):
     discord_channel_id: str
     check_interval: int = 60
 
+
     class Config:
-        env_file = ".env"
+        env_file = "../.env"

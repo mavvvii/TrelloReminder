@@ -49,3 +49,12 @@ class TrelloClient:
     @property
     def alerts(self) -> dict[timedelta, str]:
         return self._alerts
+
+    def get_members_data(self, member_ids: list[str]) -> list[str]:
+        names: list[str] = []
+
+        for member in self._members:
+            if member['id'] in member_ids:
+                if member['fullName'] not in names:
+                    names.append(member['fullName'])
+        return names

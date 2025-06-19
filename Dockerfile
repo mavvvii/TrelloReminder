@@ -1,31 +1,16 @@
-FROM python:3.11-alpine AS dev
+FROM python:3.11-alpine
 
 ENV PYTHONUNBUFFERED=1
+ENV POETRY_VERSION=1.4.2
+
+RUN pip install poetry==${POETRY_VERSION}
 
 WORKDIR /TrelloReminder
 
-COPY requirements.txt .
+COPY pyproject.toml poetry.lock ./
 
-RUN pip install -r requirements.txt
-
-COPY . .
-
-ENTRYPOINT ["python", "main.py"]
-
-FROM python:3.11-alpine AS prod
-
-ENV PYTHONUNBUFFERED=1
-
-WORKDIR /TrelloReminder
-
-COPY requirements.txt .
-
-RUN pip install -r requirements.txt
+RUN poetry install --no-root
 
 COPY . .
 
-RUN adduser -D appuser
-
-USER appuser
-
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["poetry", "run", "python", "src/main.py"]

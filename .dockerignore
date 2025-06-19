@@ -3,3 +3,4 @@
 .git
 __pycache__
 README.md
+.pre-commit-config.yaml
