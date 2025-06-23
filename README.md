@@ -1,6 +1,6 @@
 # TRELLOREMINDER
 
-*Transform Tasks Into Timely Triumphs Effortlessly*
+*Never Miss a Trello Deadline*
 
 ![last-commit](https://img.shields.io/github/last-commit/mavvvii/TrelloReminder?style=flat&logo=git&logoColor=white&color=0080ff)
 ![repo-top-language](https://img.shields.io/github/languages/top/mavvvii/TrelloReminder?style=flat&color=0080ff)
@@ -24,15 +24,29 @@
 - [Overview](#overview)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Usage](#usage)
-  - [Testing](#testing)
+- [Installation & Setup](#installation--setup)
+  - [Docker Compose](#docker-compose)
+  - [Poetry](#poetry)
+- [Running Tests](#running-tests)
+  - [Docker Compose](#docker-compose-1)
+  - [Poetry](#poetry-1)
+- [License](#license)
 
 ---
 
 ## 📌 Overview
 
-TrelloReminder automatyzuje przypomnienia o zadaniach z tablic Trello, zapewniając płynny przepływ pracy i lepsze zarządzanie czasem. Dzięki integracji z Dockerem, Poetry i Discordem możesz łatwo zarządzać zadaniami w czasie rzeczywistym i otrzymywać powiadomienia bezpośrednio tam, gdzie ich potrzebujesz.
+TrelloReminder automates reminders for your Trello cards, ensuring you never miss a deadline. Receive notifications directly in Discord with zero hassle, and keep your workflow seamless and on-track.
+
+Key features:
+
+🕒 Periodic scanning of Trello boards and lists for upcoming due dates
+
+🔔 Discord notifications with customizable timing (e.g., 1 day, 1 hour before due)
+
+🐳 Easy deployment with Docker Compose or Poetry
+
+⚙️ Full configuration via YAML or environment variables
 
 ---
 
@@ -40,81 +54,82 @@ TrelloReminder automatyzuje przypomnienia o zadaniach z tablic Trello, zapewniaj
 
 ### 🔧 Prerequisites
 
-Ten projekt wymaga:
+Before you begin, ensure you have the following installed on your system:
 
-- **Programming Language:** Python  
-- **Package Manager:** Poetry  
-- **Container Runtime:** Docker
+- **Python 3.8+**
+- **Poetry**   
+- **Docker**
+- **Docker Compose**
 
 ---
 
-### 💾 Installation
+## 💾 Installation & Setup
 
-Zbuduj i zainstaluj TrelloReminder lokalnie:
+Choose one of the setup methods below.
 
-#### 1. Sklonuj repozytorium
+### 🐳 Docker Compose
 
+1. Clone the repository:
 ```sh
-git clone https://github.com/mavvvii/TrelloReminder
-```
-
-#### 2. Przejdź do katalogu projektu
-
-```sh
+git clone https://github.com/mavvvii/TrelloReminder.git
 cd TrelloReminder
 ```
-
-#### 3. Zainstaluj zależności
-
-##### Za pomocą [Docker](https://www.docker.com/):
-
+2.Copy the example environment file and provide your credentials:
 ```sh
-docker build -t mavvvii/TrelloReminder .
+cp .env.example .env
+# Edit .env to set TRELLO_KEY, TRELLO_TOKEN, DISCORD_WEBHOOK_URL, etc.
+```
+3.Start the service:
+```sh
+docker-compose up -d --build
+```
+4.Tail the logs to verify it’s running:
+```sh
+docker-compose logs -f
 ```
 
-##### Za pomocą [Poetry](https://python-poetry.org/):
+### 📦 Poetry
 
+1. Clone the repository:
+```sh
+git clone https://github.com/mavvvii/TrelloReminder.git
+cd TrelloReminder
+```
+2.Copy the example environment file and provide your credentials:
+```sh
+cp .env.example .env
+# Edit .env to set TRELLO_KEY, TRELLO_TOKEN, DISCORD_WEBHOOK_URL, etc.
+```
+3.Install dependencies:
 ```sh
 poetry install
 ```
+4.Run the application:
+```sh
+poetry run python -m src/main
+```
 
 ---
 
-### ▶️ Usage
+## ✅ Running Tests
+All tests are located in the tests/ directory at the project root. Framework that is use to testing is pytest.
 
-#### Z Dockerem:
-
+Run tests via:
+### 🐳 Docker Compose
 ```sh
-docker run -it {image_name}
+docker-compose run --rm reminder_app pytest
 ```
 
-#### Z Poetry:
-
-```sh
-poetry run python {entrypoint}
-```
-
-Zamień `{image_name}` i `{entrypoint}` na konkretne wartości zgodnie z konfiguracją projektu.
-
----
-
-### ✅ Testing
-
-TrelloReminder używa frameworka **{test_framework}** do testów.
-
-#### Z Dockerem:
-
-```sh
-echo 'INSERT-TEST-COMMAND-HERE'
-```
-
-#### Z Poetry:
-
+### 📦 Poetry
 ```sh
 poetry run pytest
 ```
 
-Zamień `{test_framework}` oraz `INSERT-TEST-COMMAND-HERE` na właściwe wartości (np. `pytest`).
+---
+
+## 📝 License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 ---
 
